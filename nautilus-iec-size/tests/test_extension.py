@@ -10,16 +10,21 @@ from unittest.mock import patch
 EXTENSION_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(EXTENSION_DIR))
 import ldo_iec_size as extension
-from gi.repository import Gio, GLib, Nautilus
+from gi.repository import Gio, GLib, GObject, Gtk, Nautilus
 
 
-class FileStub:
+class FileStub(GObject.GObject):
     """Only Nautilus-owned FileInfo is substituted; filesystem I/O is real."""
-    def __init__(self, path, directory=False):
+    __gsignals__ = {"changed": (GObject.SignalFlags.RUN_LAST, None, (GObject.Object,))}
+
+    def __init__(self, path, directory=False, native_size=None):
+        super().__init__()
         self.location = Gio.File.new_for_path(str(path))
         self.directory = directory
         self.gone = False
         self.attributes = {}
+        self.native_size = native_size
+        self.writes = 0
 
     def get_location(self):
         return self.location
@@ -32,6 +37,11 @@ class FileStub:
 
     def add_string_attribute(self, key, value):
         self.attributes[key] = value
+        self.writes += 1
+        self.emit("changed", self)
+
+    def get_string_attribute(self, key):
+        return self.native_size if key == "size" else self.attributes.get(key)
 
 
 class ExtensionTests(unittest.TestCase):
@@ -40,6 +50,7 @@ class ExtensionTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.provider = extension.IecSizeColumn()
+        self.addCleanup(self.provider._sort_bridge.stop)
 
     def query(self, file, cancel=False):
         loop = GLib.MainLoop()
@@ -129,10 +140,42 @@ class ExtensionTests(unittest.TestCase):
                 self.assertEqual(self.query(FileStub(path)), extension.UNAVAILABLE)
 
     def test_directory_and_directory_link(self):
-        self.assertEqual(self.query(FileStub(self.root, directory=True)), extension.UNAVAILABLE)
+        self.assertEqual(self.query(FileStub(self.root, directory=True, native_size="0 items")), "0 items")
         link = self.root / "dir-link"
         link.symlink_to(self.root)
-        self.assertEqual(self.query(FileStub(link)), extension.UNAVAILABLE)
+        self.assertEqual(self.query(FileStub(link, directory=True, native_size="1 item")), "1 item")
+
+    def test_directory_reuses_native_localized_count_and_live_updates(self):
+        file = FileStub(self.root, directory=True)
+        with patch.object(file, "get_location", side_effect=AssertionError("unexpected I/O")):
+            self.assertEqual(self.query(file), extension.UNAVAILABLE)
+            for text in ("0 items", "1 item", "12 个项目", "—", None, "25 items"):
+                file.native_size = text
+                file.emit("changed", file)
+                self.assertEqual(file.attributes[extension.ATTRIBUTE], text or extension.UNAVAILABLE)
+                writes = file.writes
+                file.emit("changed", file)
+                self.assertEqual(file.writes, writes, "recursive/redundant updates")
+
+    def test_directory_refresh_does_not_duplicate_watchers(self):
+        file = FileStub(self.root, directory=True, native_size="2 items")
+        self.query(file)
+        self.query(file)
+        writes = file.writes
+        file.native_size = "3 items"
+        file.emit("changed", file)
+        self.assertEqual(file.writes, writes + 1)
+
+    def test_directory_cache_does_not_keep_files_alive(self):
+        import gc
+        import weakref
+        file = FileStub(self.root, directory=True)
+        self.query(file)
+        reference = weakref.ref(file)
+        del file
+        gc.collect()
+        self.assertIsNone(reference())
+        self.assertEqual(len(self.provider._directories), 0)
 
     def test_fifo_does_not_open_content(self):
         path = self.root / "fifo"

@@ -31,9 +31,13 @@ def main():
         try:
             import gi
             gi.require_version("Nautilus", "4.1")
+            gi.require_version("Gtk", "4.0")
             from gi.repository import Nautilus  # noqa: F401
+            from gi.repository import Gtk
+            if not hasattr(Gtk.ColumnViewColumn, "get_id"):
+                raise ValueError("GTK ColumnViewColumn.get_id is required for native sorting")
         except (ImportError, ValueError) as error:
-            parser.error(f"Nautilus 4.1 GI bindings required: {error}")
+            parser.error(f"Nautilus 4.1 and compatible GTK 4 GI bindings required: {error}")
         source = Path(__file__).resolve().with_name(FILENAME)
         destination.parent.mkdir(parents=True, exist_ok=True)
         temporary = None
