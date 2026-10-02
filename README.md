@@ -2,6 +2,12 @@
 
 一系列独立、可卸载的 Linux 桌面体验优化工具。
 
+## GNOME 应用菜单编辑器
+
+[gnome-menu-editor](gnome-menu-editor/README.md)：基于 GTK 4 + libadwaita 的原生应用菜单编辑器，
+支持搜索、分类、新建、编辑、隐藏、恢复默认，以及一键添加 `--no-sandbox`。
+系统启动项使用用户覆盖保存，无需管理员权限。
+
 ## GNOME 面板歌词扩展
 
 [jasmine-panel-lyrics](jasmine-panel-lyrics/README.md)：在 GNOME Shell 50 顶部面板显示歌词，
