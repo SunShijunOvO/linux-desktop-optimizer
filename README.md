@@ -2,6 +2,12 @@
 
 一系列独立、可卸载的 Linux 桌面体验优化工具。
 
+## GNOME 面板歌词扩展
+
+[Panel Lyrics](panel-lyrics/README.md)：在 GNOME Shell 50 顶部面板显示本地 LRC 歌词，
+通过 MPRIS 读取播放器进度，支持暂停、跳转同步及手动重新加载。
+安装、歌词命名和验证方法见子目录说明。
+
 ## Nautilus IEC 文件大小扩展
 
 为 GNOME 文件管理器的列表视图添加 **大小（IEC） / Size (IEC)** 列，

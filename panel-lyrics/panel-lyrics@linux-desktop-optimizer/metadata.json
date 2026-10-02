@@ -1,0 +1,7 @@
+{
+  "uuid": "panel-lyrics@linux-desktop-optimizer",
+  "name": "Panel Lyrics",
+  "description": "Show synchronized local LRC lyrics for an MPRIS player in the top panel.",
+  "shell-version": ["50"],
+  "version": 1
+}
