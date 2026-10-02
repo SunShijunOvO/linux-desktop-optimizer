@@ -1,6 +1,6 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
-import {PlayerReader} from '../panel-lyrics@linux-desktop-optimizer/player.js';
+import {PlayerReader} from '../jasmine-panel-lyrics@linux-desktop-optimizer/players/mpris.js';
 const xml = `<node><interface name="org.mpris.MediaPlayer2.Player">
 <property name="Metadata" type="a{sv}" access="read"/>
 <property name="Position" type="x" access="read"/>

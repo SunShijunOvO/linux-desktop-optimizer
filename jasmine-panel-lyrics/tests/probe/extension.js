@@ -7,12 +7,14 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 export default class Probe extends Extension {
     enable() {
         const root = GLib.get_user_cache_dir();
+        this._remote = GLib.getenv('JASMINE_SMOKE_MODE') === '--yesplay';
         const audio = `${root}/song.ogg`;
         GLib.file_set_contents(`${root}/song.lrc`, '[00:01]第一句\n[00:03]第二句');
         this._position = 1500000;
         this._status = 'Playing';
         this._title = '测试歌曲';
-        this._url = Gio.File.new_for_path(audio).get_uri();
+        this._url = this._remote ? '/trackid/123' : Gio.File.new_for_path(audio).get_uri();
+        GLib.file_set_contents(`${root}/remote.lrc`, '[00:01]第一句\n[00:03]第二句');
         const probe = this;
         this._service = Gio.DBusExportedObject.wrapJSObject(`<node>
             <interface name="org.mpris.MediaPlayer2.Player">
@@ -32,7 +34,8 @@ export default class Probe extends Extension {
         });
         this._service.export(Gio.DBus.session, '/org/mpris/MediaPlayer2');
         this._owner = Gio.bus_own_name(Gio.BusType.SESSION,
-            'org.mpris.MediaPlayer2.PanelLyricsProbe', Gio.BusNameOwnerFlags.NONE,
+            this._remote ? 'org.mpris.MediaPlayer2.yesplaymusic' : 'org.mpris.MediaPlayer2.PanelLyricsProbe',
+            Gio.BusNameOwnerFlags.NONE,
             null, () => this._run(root), null);
     }
 
@@ -43,17 +46,17 @@ export default class Probe extends Extension {
             ['⏸ 第一句', () => { this._status = 'Playing'; this._position = 3500000; }],
             ['♫ 第二句', () => { this._position = 1500000; }],
             ['♫ 第一句', () => {
-                GLib.file_set_contents(`${root}/song.lrc`, '[00:01]已重新加载');
-                const button = Main.panel.statusArea['panel-lyrics@linux-desktop-optimizer'];
+                GLib.file_set_contents(`${root}/${this._remote ? 'remote' : 'song'}.lrc`, '[00:01]已重新加载');
+                const button = Main.panel.statusArea['jasmine-panel-lyrics@linux-desktop-optimizer'];
                 button.menu._getMenuItems()[2].emit('activate', null);
             }],
-            ['♫ 已重新加载', () => { this._title = '无歌词测试'; this._url = ''; }],
+            ['♫ 已重新加载', () => { this._title = '无歌词测试'; this._url = this._remote ? '/trackid/456' : ''; }],
             ['♫ 无歌词测试', () => { this._status = 'Stopped'; }],
             ['♫ 已停止', () => {}],
         ];
         this._timer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
             try {
-                const button = Main.panel.statusArea['panel-lyrics@linux-desktop-optimizer'];
+                const button = Main.panel.statusArea['jasmine-panel-lyrics@linux-desktop-optimizer'];
                 const text = button.get_children()[0].text;
                 const [expected, next] = stages[step];
                 if (text !== expected)

@@ -17,7 +17,8 @@ function unpack(value) {
 // One active player, one outstanding request. Polling Position also handles seeking
 // in players which omit Seeked signals. All bus operations are asynchronous.
 export class PlayerReader {
-    constructor() {
+    constructor({priority = () => 0} = {}) {
+        this._priority = priority;
         this._cancel = new Gio.Cancellable();
         this._name = null;
         this._owner = null;
@@ -42,7 +43,7 @@ export class PlayerReader {
             if (!this._name) {
                 const [names] = await this._call('org.freedesktop.DBus',
                     '/org/freedesktop/DBus', 'org.freedesktop.DBus', 'ListNames', null, '(as)');
-                this._name = names.filter(name => name.startsWith('org.mpris.MediaPlayer2.')).sort()[0];
+                this._name = names.filter(name => name.startsWith('org.mpris.MediaPlayer2.')).sort((a, b) => this._priority(a) - this._priority(b) || a.localeCompare(b))[0];
                 if (!this._name)
                     return null;
                 [this._owner] = await this._call('org.freedesktop.DBus',

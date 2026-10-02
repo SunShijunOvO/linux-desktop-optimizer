@@ -1,0 +1,7 @@
+{
+  "uuid": "jasmine-panel-lyrics@linux-desktop-optimizer",
+  "name": "jasmine-panel-lyrics",
+  "description": "Modular panel lyrics with YesPlayMusic integration and local LRC support.",
+  "shell-version": ["50"],
+  "version": 2
+}

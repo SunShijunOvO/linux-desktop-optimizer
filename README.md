@@ -4,8 +4,9 @@
 
 ## GNOME 面板歌词扩展
 
-[Panel Lyrics](panel-lyrics/README.md)：在 GNOME Shell 50 顶部面板显示本地 LRC 歌词，
-通过 MPRIS 读取播放器进度，支持暂停、跳转同步及手动重新加载。
+[jasmine-panel-lyrics](jasmine-panel-lyrics/README.md)：在 GNOME Shell 50 顶部面板显示歌词，
+支持 YesPlayMusic 自动取词、通用本地 LRC、暂停与跳转同步。采用模块化播放器/歌词适配器，
+方便添加其他播放器；包含缓存、异步请求取消和失败回退。
 安装、歌词命名和验证方法见子目录说明。
 
 ## Nautilus IEC 文件大小扩展

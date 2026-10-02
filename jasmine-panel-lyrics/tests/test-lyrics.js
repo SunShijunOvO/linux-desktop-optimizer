@@ -1,4 +1,4 @@
-import {parseLrc, lyricAt, safeFilename} from '../panel-lyrics@linux-desktop-optimizer/lyrics.js';
+import {parseLrc, lyricAt, safeFilename} from '../jasmine-panel-lyrics@linux-desktop-optimizer/core/lyrics.js';
 
 let count = 0;
 function equal(actual, expected) {

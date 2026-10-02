@@ -3,3 +3,7 @@ __pycache__/
 *.py[cod]
 core
 core.*
+
+# The extension's source directory is not a crash dump.
+!/jasmine-panel-lyrics/jasmine-panel-lyrics@linux-desktop-optimizer/core/
+!/jasmine-panel-lyrics/jasmine-panel-lyrics@linux-desktop-optimizer/core/**
